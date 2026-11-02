@@ -273,8 +273,8 @@ body.auth-out .nav{visibility:hidden}
    Si se dejan vacíos, la app funciona en "modo local" (solo este navegador).
    ===================================================================== */
 window.TURNOS_CONFIG = {
-  supabaseUrl: 'https://fvhxsztwsqeqjqhcoqsv.supabase.co',   // ej: 'https://abcdefghijkl.supabase.co'
-  supabaseKey: 'sb_publishable_XDsTLu3dI811R1_ePQa-Pg_O75K87eK'    // ej: 'eyJhbGciOi...' o 'sb_publishable_...'
+  supabaseUrl: 'https://xinnonzltoaoptnvkhhy.supabase.co',   // ej: 'https://abcdefghijkl.supabase.co'
+  supabaseKey: 'sb_publishable_DoSRSj0wmAR_UIX8tENXXQ_X5BS5a1q'    // ej: 'eyJhbGciOi...' o 'sb_publishable_...'
 };
 </script>
 </head>
@@ -523,7 +523,12 @@ function showLogin(msg){
   });
 }
 
-function startDB(user){
+async function startDB(user){
+  try{
+    const [t,p]=await Promise.all([ S.sb.from('tur_usuarios').select('activo').eq('id',user.id).maybeSingle(), S.sb.from('profiles').select('rol,activo').eq('id',user.id).maybeSingle() ]);
+    const ok=(t.data&&t.data.activo)||(p.data&&p.data.activo&&p.data.rol==='admin');
+    if(!ok){ document.body.classList.add('auth-out'); document.getElementById('view').innerHTML=`<div class="login"><div class="login-card"><h1>Turnos · Grupo TX</h1><p>Tu cuenta (${esc(user.email||'')}) no tiene acceso al módulo de turnos. Pide acceso a Control de Gestión.</p><button class="btn btn-red" onclick="S.sb.auth.signOut()">Cerrar sesión</button></div></div>`; return; }
+  }catch(e){ console.error(e); }
   document.body.classList.remove('auth-out');
   S.user=user; S.mode='db'; S.db=makeSupabaseDB(S.sb);
   document.getElementById('userMail').textContent=user.email||'';
